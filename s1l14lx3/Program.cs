@@ -170,6 +170,10 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.DFL);
                     ModuleThread.Start(Command);
                     break;
+                //Comment
+                case "message":
+                    //Code
+                    break;
                 //Exit
                 case "exit":
                     await S1l14lx3_Module.DATA_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
@@ -178,6 +182,12 @@ public class S1l14lx3
                 //Default
                 default:
                     continue;
+                    /*/
+                       //Comment
+                    case "CMD":
+                        //Code
+                        break;
+                    /*/
             }
             await Task.Delay(10);
         }
