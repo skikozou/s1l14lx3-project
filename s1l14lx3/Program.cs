@@ -26,7 +26,8 @@ public class Program
     public static void Main(string[] args)
     {
         //debug
-
+        string A = "a";
+        ToastExtensions.Show(A);
         //end
         AsyncMain();
         Tools.Wait();
