@@ -1,4 +1,5 @@
 ﻿using Codeplex.Data;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using s1l14lx3;
@@ -175,6 +176,11 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.TOAST);
                     ModuleThread.Start(Command);
                     break;
+                //Beep
+                case "beep":
+                    ModuleThread = new Thread(S1l14lx3_Module.BEEP);
+                    ModuleThread.Start(Command);
+                    break;
                 //Exit
                 case "exit":
                     await S1l14lx3_Module.DATA_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
@@ -260,6 +266,11 @@ public class S1l14lx3
                 //Toast Message
                 case "message":
                     ModuleThread = new Thread(S1l14lx3_Module.TOAST);
+                    ModuleThread.Start(Command);
+                    break;
+                //Beep
+                case "beep":
+                    ModuleThread = new Thread(S1l14lx3_Module.BEEP);
                     ModuleThread.Start(Command);
                     break;
                 //Exit
@@ -349,6 +360,12 @@ public class S1l14lx3_Module
     {
         string[] CMD = (string[])Obj;
         Tools.ShowToast(CMD[1]);
+    }
+    public static void BEEP(object Obj)
+    {
+        string[] CMD = (string[])Obj;
+        string[] Opt = CMD[1].Split(' ');
+        Console.Beep(int.Parse(Opt[0]), int.Parse(Opt[1]));
     }
     public static async void BNMs(object Obj)
     {
