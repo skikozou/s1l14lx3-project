@@ -326,6 +326,7 @@ public class S1l14lx3_Module
         string FileURL = raw[0];
         string Filepath = raw[1];
         FILE_GET(FileURL, Filepath);
+        await DATA_POST("ダウンロードが完了しました\n" + Filepath);
     }
     public static async void DFL(object Obj)
     {
