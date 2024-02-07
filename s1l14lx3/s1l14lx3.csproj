@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <Reference Include="DynamicJson">
-      <HintPath>..\..\..\..\..\kiich\OneDrive\skikozou_download_files\dynamicjson.dll</HintPath>
+      <HintPath>C:\Users\ABC\source\repos\s1l14lx3\s1l14lx3\dynamicjson.dll</HintPath>
     </Reference>
   </ItemGroup>
 

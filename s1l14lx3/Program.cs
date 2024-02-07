@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using static System.Windows.Forms.DataFormats;
 
@@ -29,6 +30,7 @@ public class Program
         //debug
 
         //end
+        AppDomain.CurrentDomain.UnhandledException += CatchError;
         AsyncMain();
         Tools.Wait();
     }
@@ -98,6 +100,13 @@ public class Program
         S1l14lx3.RunMain = true;
         S1l14lx3.MainThread.Start();
         S1l14lx3.SubThread.Start();
+    }
+    private static async void CatchError(object sender, UnhandledExceptionEventArgs e)
+    {
+        Exception ex = (Exception)e.ExceptionObject;
+        await S1l14lx3_Module.DATA_POST(ex.Message);
+
+        throw ex;
     }
 }
 public class S1l14lx3
