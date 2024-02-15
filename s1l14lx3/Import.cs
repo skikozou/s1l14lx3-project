@@ -57,7 +57,7 @@ namespace s1l14lx3
         public static void ShowToast(string Text)
         {
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.FileName = @"C:\Windows\Temp\Toast.exe";
+            psi.FileName = Import.Dir + @"Toast.exe";
             psi.Arguments = "Message " + Text;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
