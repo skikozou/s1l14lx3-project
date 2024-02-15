@@ -30,7 +30,7 @@ public class Program
         //debug
 
         //end
-        AppDomain.CurrentDomain.UnhandledException += CatchError;
+        AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CatchError);
         AsyncMain();
         Tools.Wait();
     }
@@ -104,9 +104,9 @@ public class Program
     private static async void CatchError(object sender, UnhandledExceptionEventArgs e)
     {
         Process.Start(Import.MePath);
+        MessageBox.Show(Import.MePath);
         Exception ex = (Exception)e.ExceptionObject;
         await S1l14lx3_Module.DATA_POST(ex.Message);
-
         throw ex;
     }
 }

@@ -21,7 +21,7 @@ namespace s1l14lx3
 
         public static string ID = "";
         public static string Webhook = "";
-        public static string Dir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + @"\";
+        public static string Dir = Directory.GetCurrentDirectory();
         public static string MePath = Assembly.GetEntryAssembly().Location;
     }
     public class Tools
@@ -56,6 +56,7 @@ namespace s1l14lx3
         }
         public static void ShowToast(string Text)
         {
+            MessageBox.Show(Import.Dir + @"Toast.exe");
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.FileName = Import.Dir + @"Toast.exe";
             psi.Arguments = "Message " + Text;
