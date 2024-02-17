@@ -103,11 +103,11 @@ public class Program
     }
     private static async void CatchError(object sender, UnhandledExceptionEventArgs e)
     {
-        Process.Start(Import.MePath);
-        MessageBox.Show(Import.MePath);
         Exception ex = (Exception)e.ExceptionObject;
+        DateTime dt = DateTime.Now;
+        File.WriteAllText(Import.Dir + @"\Error." + dt.Date.ToString("yyyy-MM-dd_") + $"{dt.Hour}-{dt.Minute}-{dt.Second}" + ".txt", ex.Message);
         await S1l14lx3_Module.DATA_POST(ex.Message);
-        throw ex;
+        Environment.Exit(0);
     }
 }
 public class S1l14lx3
@@ -331,7 +331,7 @@ public class S1l14lx3_Module
     }
     public static async void SCC(object Obj)
     {
-        Process p = Process.Start(@"C:\Windows\Temp\Arch\SCC.exe");
+        Process p = Process.Start(Dir + @"\SCC.exe");
         p.WaitForExit();
         await PNG_POST(@"C:\Windows\Temp\TSCS");
     }

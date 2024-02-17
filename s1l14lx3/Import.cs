@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using Windows.UI.Notifications;
 
 namespace s1l14lx3
 {
@@ -56,15 +57,12 @@ namespace s1l14lx3
         }
         public static void ShowToast(string Text)
         {
-            MessageBox.Show(Import.Dir + @"Toast.exe");
-            ProcessStartInfo psi = new ProcessStartInfo();
-            psi.FileName = Import.Dir + @"Toast.exe";
-            psi.Arguments = "Message " + Text;
-            psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
-            Process process = new Process();
-            process.StartInfo = psi;
-            process.Start();
+            var type = ToastTemplateType.ToastText01;
+            var content = ToastNotificationManager.GetTemplateContent(type);
+            var text = content.GetElementsByTagName("text").First();
+            text.AppendChild(content.CreateTextNode(Text));
+            var notifier = ToastNotificationManager.CreateToastNotifier("Message");
+            notifier.Show(new ToastNotification(content));
         }
     }
     public class RemoteCommand
