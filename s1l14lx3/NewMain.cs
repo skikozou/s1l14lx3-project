@@ -15,6 +15,7 @@ public class NewProgram
             WiFi = S1l14lx3.CheckWiFi();
             Thread.Sleep(10000);
         }
+
         string id = S1l14lx3_Module.GETID();
         string wh = S1l14lx3_Module.GETWH();
         string cID = S1l14lx3_Module.GETCID();
