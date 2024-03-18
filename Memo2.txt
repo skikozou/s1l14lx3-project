@@ -1,0 +1,11 @@
+client側コードabout
+
+初期設定
+	ID設定
+	登録 & discord channel create
+	webhook作成して、セットアップ終了
+	レジストリとか
+
+起動時
+	TCPで繋ぐ
+	出力と入力は全てwhでchannelにlog

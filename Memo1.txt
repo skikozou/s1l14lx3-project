@@ -1,0 +1,7 @@
+dashboard側コードabout
+
+起動時
+	address & port聞く
+	whの入出力設定
+	開始
+	あとdiscord botは初期設定のみ

