@@ -26,12 +26,12 @@ namespace s1l14lx3
         //end
 
         //User Config
-        public static string GUILDID = "";                                                                               //discord server ID
-        public static string MainChannelID = "1216941003039051827";                                                      //discord server main channel ID
-        public static string MainChannelWebhook = "";                                                                    //Main channel Webhook
-        public static string DISCORDTOKEN = "MTEyODgwNzI0MjYwMzQ0NjMxMw.GProy8.C11W1HDWuPHUOJbsyrTz8dJVFKREaYKcAY2ew0";  //discord bot token
-        public static string PARENTUSERID = "1079923996176437319";                                                       //Your discord ID
-        public static string NGROKTOKEN = "2c4FnnPQmyuFksOp5egKx3KbSNT_5VqurkHB1Li5SnFPN1Tvw";                           //ngrok authtoken
+        public static string GUILDID = "";            //discord server ID
+        public static string MainChannelID = "";      //discord server main channel ID
+        public static string MainChannelWebhook = ""; //Main channel Webhook
+        public static string DISCORDTOKEN = "";       //discord bot token
+        public static string PARENTUSERID = "";       //Your discord ID
+        public static string NGROKTOKEN = "";         //ngrok authtoken
         //end
     }
     public class Tools
