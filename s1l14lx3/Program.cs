@@ -27,7 +27,6 @@ public class Program
     //debug setting
 
     //end
-
     public static async Task Main(string[] args)
     {
         try
